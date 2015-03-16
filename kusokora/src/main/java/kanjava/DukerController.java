@@ -56,6 +56,11 @@ public class DukerController {
   @Value("${faceduker.width:200}")
   int resizeWidth;
 
+  @RequestMapping(value = "/")
+  String hello() {
+    return "Hello World!";
+  }
+
   @RequestMapping(value = "/duker")
   BufferedImage duker(@RequestParam Part file) throws IOException {
     opencv_core.Mat source = opencv_core.Mat.createFrom(ImageIO.read(file.getInputStream()));
