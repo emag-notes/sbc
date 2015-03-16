@@ -10,6 +10,7 @@ import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsMessagingTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.imageio.ImageIO;
 import javax.servlet.http.Part;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * @author Yoshimasa Tanabe
@@ -46,16 +49,22 @@ public class DukerController {
     return image;
   }
 
-  @RequestMapping(value = "/send")
-  String send(@RequestParam String msg) {
-    Message<String> message = MessageBuilder.withPayload(msg).build();
-    jmsMessagingTemplate.send("hello", message);
+  @RequestMapping(value = "/queue")
+  String send(@RequestParam Part file) throws IOException {
+    byte[] src = StreamUtils.copyToByteArray(file.getInputStream());
+    Message<byte[]> message = MessageBuilder.withPayload(src).build();
+    jmsMessagingTemplate.send("faceConverter", message);
     return "OK";
   }
 
-  @JmsListener(destination = "hello", concurrency = "1-5")
-  void onMessage(Message<String> message) {
+  @JmsListener(destination = "faceConverter", concurrency = "1-5")
+  void onMessage(Message<byte[]> message) throws IOException {
     log.info("received! {}", message);
-    log.info("msg={}", message.getPayload());
+    try(InputStream stream = new ByteArrayInputStream(message.getPayload())) {
+      opencv_core.Mat source = opencv_core.Mat.createFrom(ImageIO.read(stream));
+      faceDetector.detectFaces(source, FaceTranslator::duker);
+      BufferedImage image = source.getBufferedImage();
+    }
   }
+
 }

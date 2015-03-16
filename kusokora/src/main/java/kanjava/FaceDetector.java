@@ -5,6 +5,8 @@ import org.bytedeco.javacpp.opencv_objdetect.CascadeClassifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -16,6 +18,7 @@ import java.util.function.BiConsumer;
  * @author Yoshimasa Tanabe
  */
 @Component
+@Scope(value = "prototype", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class FaceDetector {
 
   private static final Logger log = LoggerFactory.getLogger(FaceDetector.class);
