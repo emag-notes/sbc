@@ -1,0 +1,7 @@
+spring:
+  main.show-banner: false
+  hornetq:
+    mode: embedded
+    embedded:
+      enabled: true
+      queues: hello
